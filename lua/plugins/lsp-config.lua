@@ -7,8 +7,18 @@ return {
 		lazy = false,
 		config = function()
 			local lspconfig = require("lspconfig")
-
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
+			-- Set up global diagnostics configuration
+			vim.diagnostic.config({
+				virtual_text = false, -- Disable inline diagnostics
+				signs = true, -- Enable signs in the gutter
+				underline = true, -- Underline diagnostic text
+				update_in_insert = false, -- Don't update diagnostics in insert mode
+				float = {
+					focusable = false, -- Floating windows are non-focusable
+					border = "rounded", -- Rounded border for the float window
+				},
+			})
 
 			--			local cmp_nvim_lsp = require("cmp_nvim_lsp")
 			-- local capabilities = cmp_nvim_lsp.default_capabilities()
@@ -77,6 +87,16 @@ return {
 							formatting = {
 								command = { "nixfmt" }, -- Use nixpkgs-fmt for formatting
 							},
+						},
+					}
+				elseif lsp == "rust_analyzer" then
+					opts.settings = {
+						["rust-analyzer"] = {
+							diagnostics = {
+								disabled = { "unresolved-proc-macro", "inactive-code" },
+							},
+							check = { command = "clippy" },
+							formatting = { enable = true },
 						},
 					}
 				end

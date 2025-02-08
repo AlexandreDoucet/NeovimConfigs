@@ -1,5 +1,3 @@
-local map = vim.keymap.set
-
 local defaults = { noremap = true, silent = true }
 --Go to file navigation
 
@@ -18,12 +16,12 @@ vim.api.nvim_set_keymap("n", "<leader>k", "<cmd>lua vim.lsp.buf.hover()<CR>", { 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- auto add closing {, [, (, ', ", <
-map("i", "{<cr>", "{<cr>}<ESC>kA<CR>", {})
-Closing_pairs = { "}", ")", "]", '"', "'", ">" }
-Opening_pairs = { "{", "(", "[", '"', "'", "<" }
-for key, chr in pairs(Opening_pairs) do
-	map("i", chr, chr .. Closing_pairs[key] .. "<esc>i", {})
-end
+--map("i", "{<cr>", "{<cr>}<ESC>kA<CR>", {})
+--Closing_pairs = { "}", ")", "]", '"', "'", ">" }
+--Opening_pairs = { "{", "(", "[", '"', "'", "<" }
+--for key, chr in pairs(Opening_pairs) do
+--	map("i", chr, chr .. Closing_pairs[key] .. "<esc>i", {})
+--end
 
 vim.api.nvim_set_keymap("n", "<S-Up>", [[:lua vim.fn["feedkeys"]('yykPjjddkk')<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-Down>", [[:lua vim.fn["feedkeys"]('yyddp')<CR>]], { noremap = true, silent = true })
