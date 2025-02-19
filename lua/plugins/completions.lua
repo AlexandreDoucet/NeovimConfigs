@@ -21,8 +21,11 @@ return {
 			-- See the full "keymap" documentation for information on defining your own keymap.
 			keymap = {
 				preset = "default",
+				["<ESC>"] = {
+					--"cancel",
+					"fallback",
+				},
 
-				["<ESC>"] = { "cancel", "fallback" },
 				["<CR>"] = { "select_and_accept", "fallback" },
 
 				["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
@@ -51,13 +54,47 @@ return {
 			},
 
 			appearance = {
+				highlight_ns = vim.api.nvim_create_namespace("blink_cmp"),
 				-- Sets the fallback highlight groups to nvim-cmp's highlight groups
 				-- Useful for when your theme doesn't support blink.cmp
 				-- Will be removed in a future release
-				use_nvim_cmp_as_default = true,
+				use_nvim_cmp_as_default = false,
 				-- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
 				-- Adjusts spacing to ensure icons are aligned
+
 				nerd_font_variant = "mono",
+				kind_icons = {
+					Text = "󰉿",
+					Method = "󰊕",
+					Function = "󰊕",
+					Constructor = "󰒓",
+
+					Field = "󰜢",
+					Variable = "󰆦",
+					Property = "󰖷",
+
+					Class = "󱡠",
+					Interface = "󱡠",
+					Struct = "󱡠",
+					Module = "󰅩",
+
+					Unit = "󰪚",
+					Value = "󰦨",
+					Enum = "󰦨",
+					EnumMember = "󰦨",
+
+					Keyword = "󰻾",
+					Constant = "󰏿",
+
+					Snippet = "󱄽",
+					Color = "󰏘",
+					File = "󰈔",
+					Reference = "󰬲",
+					Folder = "󰉋",
+					Event = "󱐋",
+					Operator = "󰪚",
+					TypeParameter = "󰬛",
+				},
 			},
 
 			completion = {
@@ -80,65 +117,4 @@ return {
 		},
 		opts_extend = { "sources.default" },
 	},
-
-	--	-- cmp-nvim-lsp: LSP completion source for nvim-cmp
-	--	{
-	--		"hrsh7th/cmp-nvim-lsp",
-	--		lazy = true, -- Lazy load when LSP client is initialized
-	--		config = function()
-	--			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
-	--			vim.lsp.handlers["textDocument/signatureHelp"] =
-	--				vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
-	--		end,
-	--	},
-	--
-	--	-- LuaSnip with friendly snippets
-	--	{
-	--		"L3MON4D3/LuaSnip",
-	--		dependencies = {
-	--			"saadparwaiz1/cmp_luasnip", -- Snippet source for nvim-cmp
-	--			"rafamadriz/friendly-snippets", -- Community snippets collection
-	--		},
-	--		lazy = true, -- Lazy load LuaSnip
-	--	},
-	--
-	--	-- nvim-cmp: Auto-completion plugin
-	--	{
-	--		"hrsh7th/nvim-cmp",
-	--		config = function()
-	--			local cmp = require("cmp")
-	--			local luasnip = require("luasnip")
-	--
-	--			-- Load VSCode-style snippets lazily
-	--			require("luasnip.loaders.from_vscode").lazy_load()
-	--
-	--			-- Configure nvim-cmp
-	--			cmp.setup({
-	--				snippet = {
-	--					expand = function(args)
-	--						luasnip.lsp_expand(args.body) -- Expand snippets with LuaSnip
-	--					end,
-	--				},
-	--				window = {
-	--					completion = cmp.config.window.bordered(),
-	--					documentation = cmp.config.window.bordered(),
-	--				},
-	--				mapping = cmp.mapping.preset.insert({
-	--					["<C-b>"] = cmp.mapping.scroll_docs(-4),
-	--					["<C-f>"] = cmp.mapping.scroll_docs(4),
-	--					["<C-Space>"] = cmp.mapping.complete(), -- Trigger completion
-	--					["<C-e>"] = cmp.mapping.abort(), -- Close completion
-	--					["<CR>"] = cmp.mapping.confirm({ select = true }), -- Confirm selection
-	--				}),
-	--				sources = cmp.config.sources({
-	--					{ name = "nvim_lsp" }, -- LSP completion
-	--					{ name = "luasnip" }, -- Snippet completion
-	--					{ name = "render-markdown" },
-	--				}, {
-	--					{ name = "buffer" }, -- Buffer source for word completion
-	--					{ name = "path" }, -- Path source (for file names, etc.)
-	--				}),
-	--			})
-	--		end,
-	--	},
 }

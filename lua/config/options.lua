@@ -40,3 +40,4 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 vim.o.updatetime = 300 -- Set delay to 300ms
+vim.o.signcolumn = "yes" -- Always display the sign column

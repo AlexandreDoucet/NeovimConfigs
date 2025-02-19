@@ -7,11 +7,12 @@ return {
 		"MunifTanjim/nui.nvim",
 	},
 
-	close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
-
 	opts = {
+
+		close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
+		open_on_setup = false,
 		window = {
-			position = "left", -- Set the Neo-tree window to open on the left
+			position = "right", -- Set the Neo-tree window to open on the left
 
 			mappings = {
 				["P"] = { "toggle_preview", config = { use_float = false, use_image_nvim = true } },
@@ -47,6 +48,17 @@ return {
 				},
 			},
 		},
+
+		event_handlers = {
+			-- Close neotree if a file is open. This works even when selecting with telescope.
+			{
+				event = "file_open_requested",
+				handler = function()
+					-- auto close
+					vim.cmd("Neotree close")
+				end,
+			},
+		},
 	},
 
 	config = function(_, opts)
@@ -62,7 +74,7 @@ return {
 				vim.cmd("Neotree close")
 			else
 				-- Open or focus Neo-tree on the left and reveal
-				vim.cmd("Neotree focus left reveal")
+				vim.cmd("Neotree focus right reveal")
 			end
 		end)
 

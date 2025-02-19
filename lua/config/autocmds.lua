@@ -15,3 +15,10 @@ vim.api.nvim_create_autocmd("CursorHold", {
 		})
 	end,
 })
+
+--vim.api.nvim_create_autocmd("CursorHold", {
+--	pattern = "*",
+--	callback = function()
+--		require("lspsaga.hover"):render_hover_doc()
+--	end,
+--})
