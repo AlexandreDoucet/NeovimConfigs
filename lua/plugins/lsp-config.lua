@@ -3,27 +3,22 @@ return {
 		"neovim/nvim-lspconfig",
 		dependencies = { "saghen/blink.cmp" },
 		enabled = true,
-		--dependencies = { "hrsh7th/cmp-nvim-lsp" },
 		lazy = false,
 		config = function()
 			local lspconfig = require("lspconfig")
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
+
 			-- Set up global diagnostics configuration
 			vim.diagnostic.config({
-				virtual_text = false, -- Disable inline diagnostics
-				signs = true, -- Enable signs in the gutter
-				underline = true, -- Underline diagnostic text
-				update_in_insert = false, -- Don't update diagnostics in insert mode
+				virtual_text = false,
+				signs = true,
+				underline = true,
+				update_in_insert = false,
 				float = {
-					focusable = false, -- Floating windows are non-focusable
-					border = "rounded", -- Rounded border for the float window
+					focusable = false,
+					border = "rounded",
 				},
 			})
-
-			--			local cmp_nvim_lsp = require("cmp_nvim_lsp")
-			-- local capabilities = cmp_nvim_lsp.default_capabilities()
-			--
-			--
 
 			-- On_attach function
 			local on_attach = function(client, bufnr)
@@ -36,7 +31,10 @@ return {
 				buf_map("n", "gd", vim.lsp.buf.definition, { desc = "Go to Definition" })
 				buf_map("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename Symbol" })
 				vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action" })
-
+				vim.keymap.set("n", "<leader>gw", vim.diagnostic.goto_next, { desc = "Go to Next Diagnostic" })
+				vim.keymap.set("n", "<leader>ge", function()
+					vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+				end, { desc = "Go to Next Error" })
 				-- Format on save
 				if client.server_capabilities.documentFormattingProvider then
 					vim.api.nvim_buf_create_user_command(bufnr, "Format", function()
@@ -52,9 +50,6 @@ return {
 				end
 			end
 
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			-- Define LSP servers
 			local servers = { "lua_ls", "clangd", "rust_analyzer", "nil_ls" }
 
@@ -63,7 +58,7 @@ return {
 					on_attach = on_attach,
 					capabilities = capabilities,
 				}
-				-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 				if lsp == "lua_ls" then
 					opts.settings = {
 						Lua = {
@@ -71,43 +66,29 @@ return {
 							diagnostics = { globals = { "vim" } },
 						},
 					}
-				-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 				elseif lsp == "rust_analyzer" then
 					opts.settings = {
 						["rust-analyzer"] = {
 							check = { command = "clippy" },
-							--diagnostics = { enable = true },
 							formatting = { enable = true },
+							diagnostics = {
+								disabled = { "unresolved-proc-macro", "inactive-code" },
+							},
 						},
 					}
-				-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 				elseif lsp == "nil_ls" then
 					opts.settings = {
 						["nil"] = {
 							formatting = {
-								command = { "nixfmt" }, -- Use nixpkgs-fmt for formatting
+								command = { "nixfmt" },
 							},
-						},
-					}
-				elseif lsp == "rust_analyzer" then
-					opts.settings = {
-						["rust-analyzer"] = {
-							diagnostics = {
-								disabled = { "unresolved-proc-macro", "inactive-code" },
-							},
-							check = { command = "clippy" },
-							formatting = { enable = true },
 						},
 					}
 				end
 
-				-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 				-- common configs for all LSPs
 				lspconfig[lsp].setup(opts)
 			end
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		end,
 	},
 }
