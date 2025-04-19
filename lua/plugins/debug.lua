@@ -54,10 +54,26 @@ return {
 
       -- Configure adapters and languages
       local dap = require("dap")
+
+
+
+      -- Function to detect the Python path for the current project
+      local function get_python_path()
+        -- Try to find the venv in the current working directory
+        local venv = vim.fn.finddir('pyenv', vim.fn.getcwd() .. ';')
+        if venv ~= '' then
+          return venv .. '/bin/python'
+        end
+
+        -- Fallback: if no virtual environment is found, use system Python
+        return 'python'
+      end
+
+
       dap.set_log_level("ERROR") -- Set the log level to TRACE for detailed logs
       dap.adapters.python = {
         type = "executable",
-        command = "/run/current-system/sw/bin/python4",
+        command = get_python_path(), -- Automatically use the virtualenv Python if found
         args = { "-m", "debugpy.adapter" },
       }
       local mason_registry = require("mason-registry")
@@ -103,6 +119,17 @@ return {
           stopOnEntry = false,
           args = {}, -- Add any program arguments here
           runInTerminal = false,
+        },
+      }
+
+      -- python debugging configurations
+      dap.configurations.python = {
+        {
+          name = "Launch Python File",
+          type = "python",
+          request = "launch",
+          program = "${file}", -- The currently open file
+          pythonPath = get_python_path()
         },
       }
 

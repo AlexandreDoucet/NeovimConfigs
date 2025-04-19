@@ -90,12 +90,12 @@ return {
               },
             },
           }
-        elseif lsp == "pyright" then
+        elseif lsp == "jedi_language_server" then
           opts.settings = {
             python = {
               analysis = {
                 autoImportCompletions = true,
-                diagnosticMode = "openFilesOnly",
+                diagnosticMode = "workspace",
               },
             },
           }
