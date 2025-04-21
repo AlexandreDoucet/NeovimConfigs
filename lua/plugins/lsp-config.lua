@@ -57,7 +57,8 @@ return {
       end
 
       -- Define LSP servers
-      local servers = { "lua_ls", "clangd", "rust_analyzer", "nil_ls", "jedi_language_server" }
+      -- local servers = { "lua_ls", "clangd", "rust_analyzer", "nil_ls", "jedi_language_server" }
+      local servers = { "lua_ls", "clangd", "rust_analyzer", "jedi_language_server" }
 
       for _, lsp in ipairs(servers) do
         local opts = {
