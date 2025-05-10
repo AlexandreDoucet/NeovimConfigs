@@ -1,15 +1,15 @@
 return {
-  {
-    "mfussenegger/nvim-dap",
-    recommended = true,
-    desc = "Debugging support. Requires language specific adapters to be configured. (see lang extras)",
-    dependencies = {
-      "rcarriga/nvim-dap-ui",
-      {
-        "theHamsta/nvim-dap-virtual-text",
-        opts = {},
-      },
-    },
+	{
+		"mfussenegger/nvim-dap",
+		recommended = true,
+		desc = "Debugging support. Requires language specific adapters to be configured. (see lang extras)",
+		dependencies = {
+			"rcarriga/nvim-dap-ui",
+			{
+				"theHamsta/nvim-dap-virtual-text",
+				opts = {},
+			},
+		},
 
     -- stylua: ignore
     keys = {
@@ -32,118 +32,114 @@ return {
       { "<leader>du", function() require("dapui").toggle() end,                                             desc = "Toggle DAP UI" }, -- Keybinding to toggle UI
     },
 
-    config = function()
-      -- Highlight setup for stopped lines
-      vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
+		config = function()
+			-- Highlight setup for stopped lines
+			vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
 
-      -- Define signs for DAP
-      local dap_signs = {
-        Breakpoint = { "", "DiagnosticError" },
-        Stopped = { "", "DiagnosticWarn" },
-      }
-      for name, sign in pairs(dap_signs) do
-        vim.fn.sign_define("Dap" .. name, { text = sign[1], texthl = sign[2], linehl = "", numhl = "" })
-      end
+			-- Define signs for DAP
+			local dap_signs = {
+				Breakpoint = { "", "DiagnosticError" },
+				Stopped = { "", "DiagnosticWarn" },
+			}
+			for name, sign in pairs(dap_signs) do
+				vim.fn.sign_define("Dap" .. name, { text = sign[1], texthl = sign[2], linehl = "", numhl = "" })
+			end
 
-      -- Load VS Code launch.json support
-      local vscode = require("dap.ext.vscode")
-      local json = require("plenary.json")
-      vscode.json_decode = function(str)
-        return vim.json.decode(json.json_strip_comments(str))
-      end
+			-- Load VS Code launch.json support
+			local vscode = require("dap.ext.vscode")
+			local json = require("plenary.json")
+			vscode.json_decode = function(str)
+				return vim.json.decode(json.json_strip_comments(str))
+			end
 
-      -- Configure adapters and languages
-      local dap = require("dap")
+			-- Configure adapters and languages
+			local dap = require("dap")
 
+			-- Function to detect the Python path for the current project
+			local function get_python_path()
+				-- Try to find the venv in the current working directory
+				local venv = vim.fn.finddir("pyenv", vim.fn.getcwd() .. ";")
+				if venv ~= "" then
+					return venv .. "/bin/python"
+				end
 
+				-- Fallback: if no virtual environment is found, use system Python
+				return "python"
+			end
 
-      -- Function to detect the Python path for the current project
-      local function get_python_path()
-        -- Try to find the venv in the current working directory
-        local venv = vim.fn.finddir('pyenv', vim.fn.getcwd() .. ';')
-        if venv ~= '' then
-          return venv .. '/bin/python'
-        end
+			dap.set_log_level("ERROR") -- Set the log level to TRACE for detailed logs
+			dap.adapters.python = {
+				type = "executable",
+				command = get_python_path(), -- Automatically use the virtualenv Python if found
+				args = { "-m", "debugpy.adapter" },
+			}
+			local mason_registry = require("mason-registry")
 
-        -- Fallback: if no virtual environment is found, use system Python
-        return 'python'
-      end
+			-- Ensure codelldb is installed
+			-- local codelldb = mason_registry.get_package("codelldb")
+			-- local codelldb_path = codelldb:get_install_path()
 
+			-- dap.adapters.lldb = {
+			--   type = "server",
+			--   port = "${port}",
+			--   executable = {
+			--     command = codelldb_path .. "/extension/adapter/codelldb",
+			--     args = { "--port", "${port}" },
+			--   },
+			-- }
 
-      dap.set_log_level("ERROR") -- Set the log level to TRACE for detailed logs
-      dap.adapters.python = {
-        type = "executable",
-        command = get_python_path(), -- Automatically use the virtualenv Python if found
-        args = { "-m", "debugpy.adapter" },
-      }
-      local mason_registry = require("mason-registry")
+			-- Configure the Rust adapter (codelldb)
+			-- dap.adapters.lldb = {
+			--   type = "server",
+			--   port = "${port}",
+			--   executable = {
+			--     command = vim.fn.exepath("codelldb"),
+			--     args = { "--port", "${port}" },
+			--   },
+			-- }
 
-      -- Ensure codelldb is installed
-      local codelldb = mason_registry.get_package("codelldb")
-      local codelldb_path = codelldb:get_install_path()
+			-- Rust debugging configurations
+			dap.configurations.rust = {
+				{
+					name = "Launch",
+					type = "lldb",
+					request = "launch",
+					program = function()
+						-- Get the default executable name from cargo build
+						local default_executable = vim.fn.getcwd()
+							.. "/target/debug/"
+							.. vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+						return vim.fn.input("Path to executable: ", default_executable, "file")
+					end,
+					cwd = "${workspaceFolder}",
+					stopOnEntry = false,
+					args = {}, -- Add any program arguments here
+					runInTerminal = false,
+				},
+			}
 
-      dap.adapters.lldb = {
-        type = "server",
-        port = "${port}",
-        executable = {
-          command = codelldb_path .. "/extension/adapter/codelldb",
-          args = { "--port", "${port}" },
-        },
-      }
+			-- python debugging configurations
+			dap.configurations.python = {
+				{
+					name = "Launch Python File",
+					type = "python",
+					request = "launch",
+					program = "${file}", -- The currently open file
+					pythonPath = get_python_path(),
+				},
+			}
 
+			-- Set up dapui (ensure it opens when debugging)
+			local dapui = require("dapui")
+			dapui.setup() -- Initialize dapui
 
-      -- Configure the Rust adapter (codelldb)
-      dap.adapters.lldb = {
-        type = "server",
-        port = "${port}",
-        executable = {
-          command = vim.fn.exepath("codelldb"),
-          args = { "--port", "${port}" },
-        },
-      }
-
-      -- Rust debugging configurations
-      dap.configurations.rust = {
-        {
-          name = "Launch",
-          type = "lldb",
-          request = "launch",
-          program = function()
-            -- Get the default executable name from cargo build
-            local default_executable = vim.fn.getcwd()
-                .. "/target/debug/"
-                .. vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-            return vim.fn.input("Path to executable: ", default_executable, "file")
-          end,
-          cwd = "${workspaceFolder}",
-          stopOnEntry = false,
-          args = {}, -- Add any program arguments here
-          runInTerminal = false,
-        },
-      }
-
-      -- python debugging configurations
-      dap.configurations.python = {
-        {
-          name = "Launch Python File",
-          type = "python",
-          request = "launch",
-          program = "${file}", -- The currently open file
-          pythonPath = get_python_path()
-        },
-      }
-
-      -- Set up dapui (ensure it opens when debugging)
-      local dapui = require("dapui")
-      dapui.setup() -- Initialize dapui
-
-      dap.listeners.after["dap.run"] = function()
-        dapui.open()
-      end
-      dap.listeners.before["dap.exit"] = function()
-        dapui.close()
-      end
-    end,
-  },
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" } },
+			dap.listeners.after["dap.run"] = function()
+				dapui.open()
+			end
+			dap.listeners.before["dap.exit"] = function()
+				dapui.close()
+			end
+		end,
+	},
+	{ "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" } },
 }

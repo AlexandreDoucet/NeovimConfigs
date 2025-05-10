@@ -1,120 +1,60 @@
 return {
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = { "saghen/blink.cmp", "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim" },
-    enabled = true,
-    lazy = false,
-    config = function()
-      local lspconfig = require("lspconfig")
-      local capabilities = require("blink.cmp").get_lsp_capabilities()
+	{
+		"neovim/nvim-lspconfig",
+		config = function()
+			local lspconfig = require("lspconfig")
 
-      -- Set up Mason
-      require("mason").setup()
-      require("mason-lspconfig").setup({
-        automatic_installation = true, -- Automatically install LSPs
-      })
+			lspconfig.lua_ls.setup({})
+			lspconfig.rust_analyzer.setup({})
+			lspconfig.jedi_language_server.setup({})
+			lspconfig.clangd.setup({})
+			lspconfig.eslint.setup({})
 
-      -- Set up global diagnostics configuration
-      vim.diagnostic.config({
-        virtual_text = false,
-        signs = true,
-        underline = true,
-        update_in_insert = false,
-        float = {
-          focusable = false,
-          border = "rounded",
-        },
-      })
+			-- Diagnostic keymaps
+			vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
+			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
+			vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
+			vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
 
-      -- On_attach function
-      local on_attach = function(client, bufnr)
-        local buf_map = function(mode, lhs, rhs, opts)
-          opts = vim.tbl_extend("force", { buffer = bufnr }, opts or {})
-          vim.keymap.set(mode, lhs, rhs, opts)
-        end
+			-- LspAttach autocommand
 
-        -- Key bindings
-        buf_map("n", "gd", vim.lsp.buf.definition, { desc = "Go to Definition" })
-        buf_map("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename Symbol" })
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action" })
-        vim.keymap.set("n", "<leader>gw", vim.diagnostic.goto_next, { desc = "Go to Next Diagnostic" })
-        vim.keymap.set("n", "<leader>ge", function()
-          vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
-        end, { desc = "Go to Next Error" })
-        -- Format on save
-        if client.server_capabilities.documentFormattingProvider then
-          vim.api.nvim_buf_create_user_command(bufnr, "Format", function()
-            vim.lsp.buf.format({ async = true })
-          end, { desc = "Format document with LSP" })
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+				callback = function(ev)
+					-- Check if the buffer is valid
+					if not ev.buf or not vim.api.nvim_buf_is_valid(ev.buf) then
+						return
+					end
 
-          vim.cmd([[
-            augroup lsp_format_on_save
-              autocmd! * <buffer>
-              autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ async = true })
-            augroup END
-          ]])
-        end
-      end
+					-- Enable completion triggered by <c-x><c-o>
+					vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 
-      -- Define LSP servers
-      -- local servers = { "lua_ls", "clangd", "rust_analyzer", "nil_ls", "jedi_language_server" }
-      local servers = { "lua_ls", "clangd", "rust_analyzer", "jedi_language_server" }
+					-- Buffer-local mappings
+					local opts = { buffer = ev.buf }
+					vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+					vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+					vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
+					vim.keymap.set("n", "<space>wa", vim.lsp.buf.add_workspace_folder, opts)
+					vim.keymap.set("n", "<space>wr", vim.lsp.buf.remove_workspace_folder, opts)
+					vim.keymap.set("n", "<space>wl", function()
+						print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+					end, opts)
+					vim.keymap.set("n", "<space>D", vim.lsp.buf.type_definition, opts)
+					vim.keymap.set("n", "<F2>", vim.lsp.buf.rename, opts)
+					vim.keymap.set({ "n", "v" }, "<space>ca", vim.lsp.buf.code_action, opts)
+					vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+					vim.keymap.set("n", "<space>f", function()
+						vim.lsp.buf.format({ async = true })
+					end, opts)
 
-      for _, lsp in ipairs(servers) do
-        local opts = {
-          on_attach = on_attach,
-          capabilities = capabilities,
-        }
-
-        if lsp == "lua_ls" then
-          opts.settings = {
-            Lua = {
-              format = { enable = true },
-              diagnostics = { globals = { "vim" } },
-            },
-          }
-        elseif lsp == "rust_analyzer" then
-          opts.settings = {
-            ["rust-analyzer"] = {
-              check = { command = "clippy" },
-              formatting = { enable = true },
-              diagnostics = {
-                disabled = { "unresolved-proc-macro", "inactive-code" },
-              },
-            },
-          }
-        elseif lsp == "nil_ls" then
-          opts.settings = {
-            ["nil"] = {
-              formatting = {
-                command = { "nixfmt" },
-              },
-            },
-          }
-        elseif lsp == "jedi_language_server" then
-          opts.settings = {
-            python = {
-              analysis = {
-                autoImportCompletions = true,
-                diagnosticMode = "workspace",
-              },
-            },
-          }
-        end
-
-        -- Setup LSP
-        lspconfig[lsp].setup(opts)
-      end
-
-      -- Automatically configure installed LSPs from Mason
-      require("mason-lspconfig").setup_handlers({
-        function(server_name)
-          lspconfig[server_name].setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-          })
-        end,
-      })
-    end,
-  },
+					vim.keymap.set("n", "<leader>gw", vim.diagnostic.goto_next, { desc = "Go to Next Diagnostic" })
+					vim.keymap.set("n", "<leader>ge", function()
+						vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+					end, { desc = "Go to Next Error" })
+				end,
+			})
+		end,
+	},
 }
