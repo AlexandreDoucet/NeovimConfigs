@@ -27,7 +27,7 @@ return {
 					end
 
 					-- Enable completion triggered by <c-x><c-o>
-					vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+					--vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 
 					-- Buffer-local mappings
 					local opts = { buffer = ev.buf }

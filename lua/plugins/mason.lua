@@ -19,10 +19,9 @@ return {
 			require("mason-lspconfig").setup({
 				ensure_installed = {
 					"lua_ls",
-					"rust_analyzer",
+					--"rust_analyzer",
 					"clangd",
 					"jedi_language_server",
-					"black",
 				},
 			})
 		end,

@@ -115,6 +115,6 @@ return {
 				--cmdline = {},
 			},
 		},
-		opts_extend = { "sources.default" },
+		--opts_extend = { "sources.default" },
 	},
 }
