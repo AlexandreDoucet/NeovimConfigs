@@ -38,6 +38,7 @@ return {
 				},
 			})
 			telescope.load_extension("fzf")
+			telescope.load_extension("noice")
 
 			-- Helper function to set working directory
 			local function set_cwd(path)

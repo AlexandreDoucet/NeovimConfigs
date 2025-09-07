@@ -1,9 +1,12 @@
 return {
 	{
-		--		"AlexandreDoucet/render-markdown.nvim",
 		"MeanderingProgrammer/render-markdown.nvim",
-		dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.nvim" },
-		opts = {}, -- Remove if not needed
+		dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" }, -- if you use the mini.nvim suite
+		-- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' }, -- if you use standalone mini plugins
+		-- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+		---@module 'render-markdown'
+		---@type render.md.UserConfig
+		opts = {},
 
 		config = function()
 			-- Set up render-markdown plugin
@@ -37,29 +40,28 @@ return {
 				},
 			})
 
-			-- Custom function to toggle checkbox state
+			-- custom function to toggle checkbox state
 			local function insert_checkbox()
-				local line = vim.api.nvim_get_current_line() -- Get the current line
+				local line = vim.api.nvim_get_current_line() -- get the current line
 
-				-- Check if the line already contains a checkbox
+				-- check if the line already contains a checkbox
 				if line:match("^%s*[%-]%s%[.*%]") then
-					print("hit")
-					-- Toggle the checkbox state between [ ] and [x]
+					-- toggle the checkbox state between [ ] and [x]
 					local new_line = line
 					if line:match("^%s*[%-]%s%[%s*]") then
-						new_line = line:gsub("%[%s*%]", "[x]") -- Change unchecked to checked
+						new_line = line:gsub("%[%s*%]", "[x]") -- change unchecked to checked
 					elseif line:match("%[.*]") then
-						new_line = line:gsub("%[%s*x%s*%]", "[ ]") -- Change checked to unchecked
+						new_line = line:gsub("%[%s*x%s*%]", "[ ]") -- change checked to unchecked
 					end
-					-- Set the modified line back
+					-- set the modified line back
 					vim.api.nvim_set_current_line(new_line)
 				else
-					-- If no checkbox exists, insert an unchecked checkbox
+					-- if no checkbox exists, insert an unchecked checkbox
 					vim.api.nvim_set_current_line("- [ ] " .. line)
 				end
 			end
 
-			-- Create a keymap to call the function (using the newer API `vim.keymap.set`)
+			-- create a keymap to call the function (using the newer api `vim.keymap.set`)
 			vim.keymap.set("n", "<leader>cb", insert_checkbox, { noremap = true, silent = true })
 		end,
 	},

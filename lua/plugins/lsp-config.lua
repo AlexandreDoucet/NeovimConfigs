@@ -6,9 +6,11 @@ return {
 
 			lspconfig.lua_ls.setup({})
 			lspconfig.rust_analyzer.setup({})
-			lspconfig.jedi_language_server.setup({})
+			--lspconfig.jedi_language_server.setup({})
 			lspconfig.clangd.setup({})
 			lspconfig.eslint.setup({})
+			lspconfig.jinja_lsp.setup({})
+			lspconfig.cssls.setup({})
 
 			-- Diagnostic keymaps
 			vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)

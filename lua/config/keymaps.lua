@@ -1,4 +1,3 @@
---Go to file navigation
 vim.keymap.set("n", "<leader>pv", ":silent Ex<CR>")
 --Save file on ctrl - s
 vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
@@ -28,3 +27,7 @@ vim.api.nvim_set_keymap("n", "<S-Down>", [[:lua vim.fn["feedkeys"]('yyddp')<CR>]
 --vim.keymap.set("n", "<C-u>", "<C-u>zz")
 --vim.keymap.set("n", "<C-f>", "<C-f>zz")
 --vim.keymap.set("n", "<C-b>", "<C-b>zz")
+--
+-- Noice notifcations
+vim.api.nvim_set_keymap("n", "<leader>dn", "<cmd>NoiceDismiss<CR>", { desc = "Dismiss Noice Message" })
+

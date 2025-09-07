@@ -10,10 +10,17 @@ return {
 		local configs = require("nvim-treesitter.configs")
 		configs.setup({
 			auto_install = true,
-			--ensure_installed = { "c", "lua", "vim", "vimdoc","html","python" },
+			ensure_installed = { "c", "lua", "html", "css", "javascript", "python" },
 			sync_install = false,
-			highlight = { enable = true },
+			highlight = {
+				enable = true,
+				additional_vim_regex_highlighting = { "jinja" },
+			},
 			indent = { enable = true },
+
+			completion = {
+				enable = true, -- Enable completion source from Treesitter
+			},
 		})
 	end,
 }

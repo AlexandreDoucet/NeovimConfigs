@@ -1,4 +1,13 @@
 return {
+
+	{
+		--		"kylechui/nvim-surround",
+		--		version = "^3.0.0", -- Use for stability; omit to use `main` branch for the latest features
+		--		event = "VeryLazy",
+		--		config = function()
+		--			require("nvim-surround").setup({})
+		--		end,
+	},
 	{
 		"saghen/blink.cmp",
 		enabled = true,
@@ -111,10 +120,11 @@ return {
 			-- Default list of enabled providers defined so that you can extend it
 			-- elsewhere in your config, without redefining it, due to `opts_extend`
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer" },
-				--cmdline = {},
+				--default = { "lsp", "path", "snippets", "buffer" },
+				default = { "lsp", "path", "buffer" },
 			},
 		},
 		--opts_extend = { "sources.default" },
+		--
 	},
 }
