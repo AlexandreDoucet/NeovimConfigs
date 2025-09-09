@@ -7,33 +7,49 @@ return {
 		},
 		config = function()
 			require("render-markdown").setup({
-				file_types = { "markdown", "quarto" },
-				render_modes = { "n", "c", "t" },
-				anti_conceal = {
+				bullet = {
 					enabled = true,
-					disabled_modes = false,
-					above = 0,
-					below = 0,
-					-- Which elements to always show, ignoring anti conceal behavior. Values can either be
-					-- booleans to fix the behavior or string lists representing modes where anti conceal
-					-- behavior will be ignored. Valid values are:
-					--   bullet
-					--   callout
-					--   check_icon, check_scope
-					--   code_background, code_border, code_language
-					--   dash
-					--   head_background, head_border, head_icon
-					--   indent
-					--   link
-					--   quote
-					--   sign
-					--   table_border
-					--   virtual_lines
-					ignore = {
-						code_background = true,
-						indent = true,
-						sign = true,
-						virtual_lines = true,
+
+					icons = function(level)
+						local symbols = { "●", "○", "◆", "◇" }
+						return symbols[(level - 1) % #symbols + 1]
+					end,
+
+					ordered_icons = function(level, index, value)
+						if not value or value == "" then
+							return string.format("%d.", index)
+						end
+
+						value = vim.trim(value)
+						local num = tonumber(value:sub(1, #value - 1))
+
+						if num then
+							return string.format("%d.", num > 1 and num or index)
+						else
+							return string.format("%d.", index)
+						end
+					end,
+					left_pad = 0,
+					right_pad = 0,
+					highlight = "RenderMarkdownBullet",
+				},
+				checkbox = {
+					enabled = true,
+					position = "inline",
+					unchecked = {
+						icon = "󰄱 ",
+						highlight = "RenderMarkdownUnchecked",
+					},
+					checked = {
+						icon = "󰱒 ",
+						highlight = "RenderMarkdownChecked",
+					},
+					custom = {
+						todo = {
+							raw = "[-]",
+							rendered = "󰥔 ",
+							highlight = "RenderMarkdownTodo",
+						},
 					},
 				},
 			})
