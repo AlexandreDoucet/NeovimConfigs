@@ -9,11 +9,14 @@ return {
       "nvim-lua/plenary.nvim",
       { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
     },
-
     cmd = "Telescope",
-
     config = function()
       local telescope = require("telescope")
+      local actions = require("telescope.actions")
+      local action_state = require("telescope.actions.state")
+      local builtin = require("telescope.builtin")
+
+      -- Setup Telescope
       telescope.setup({
         defaults = {
           prompt_prefix = "🔍 ",
@@ -24,8 +27,8 @@ return {
           },
           mappings = {
             i = {
-              ["<C-j>"] = require("telescope.actions").move_selection_next,
-              ["<C-k>"] = require("telescope.actions").move_selection_previous,
+              ["<C-j>"] = actions.move_selection_next,
+              ["<C-k>"] = actions.move_selection_previous,
             },
           },
         },
@@ -40,7 +43,7 @@ return {
       telescope.load_extension("fzf")
       telescope.load_extension("noice")
 
-      -- Helper function to set working directory
+      -- Helper to set working directory
       local function set_cwd(path)
         if path then
           vim.cmd("cd " .. vim.fn.fnameescape(path))
@@ -48,97 +51,91 @@ return {
         end
       end
 
-      -- Define a function to compute the working directory path
+      -- Compute working directory: Git root or file's directory
       local function get_cwd()
-        -- Get the Git root of the current directory where Neovim is launched
         local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+        local file_dir = vim.fn.expand("%:p:h")
+        local target_git_root = vim.fn.systemlist("git -C " .. file_dir .. " rev-parse --show-toplevel")[1]
 
-        -- Check if the target file is inside a Git repository
-        local target_file = vim.fn.expand("%:p:h")
-        local target_git_root = vim.fn.systemlist("git -C " .. target_file .. " rev-parse --show-toplevel")[1]
-
-        -- If the target file has a Git root, return that as the working directory
-        if vim.v.shell_error == 0 and target_git_root then
+        if vim.v.shell_error == 0 and target_git_root and target_git_root ~= "" then
           return target_git_root
         end
-
-        -- If no Git repository is found for the target file, return the file's directory
-        if target_file and target_file ~= "" then
-          return target_file
-        end
-
-        return nil
+        return file_dir ~= "" and file_dir or nil
       end
-      --			-- Define a function to compute the working directory path
-      --			local function get_cwd()
-      --				-- Get the Git root of the current directory
-      --				local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
-      --				if vim.v.shell_error == 0 and git_root then
-      --					-- Check if the file path is inside the Git repository
-      --					local file_dir = vim.fn.expand("%:p:h")
-      --					local is_in_git_repo =
-      --						vim.fn.systemlist("git -C " .. file_dir .. " rev-parse --is-inside-work-tree")[1]
-      --
-      --					-- If the file is inside the Git repository, return the Git root
-      --					if is_in_git_repo == "true" then
-      --						return git_root
-      --					end
-      --				end
-      --
-      --				-- If not in a Git repo, return the directory of the file or fallback to current directory
-      --				local file_dir = vim.fn.expand("%:p:h")
-      --				if file_dir and file_dir ~= "" then
-      --					return file_dir
-      --				end
-      --
-      --				return nil
-      --			end
 
-      -- Use the function in the autocmd callback
+      -- Set cwd once per buffer
       vim.api.nvim_create_autocmd("BufEnter", {
         pattern = "*",
         callback = function()
           local cwd = get_cwd()
-          if cwd then
-            set_cwd(cwd)
-          end
+          if cwd then set_cwd(cwd) end
         end,
-        once = true, -- Set cwd only once per buffer
+        once = true,
       })
 
-      -- Keybindings for Telescope fuzzy search with dynamic cwd
-      local builtin = require("telescope.builtin")
-      -- Keymap: Set cwd to parent directory
-      vim.keymap.set("n", "<leader>cdg", function()
-        local dir = get_cwd()
-        set_cwd(dir)
-      end, { noremap = true, silent = true, desc = "Set CWD to git root if available" })
+      -- Helper to attach Enter mapping to jump to selection
+      local function attach_jump_mappings(prompt_bufnr)
+        local function jump_to_selection()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+          if selection.path then
+            vim.cmd("edit " .. selection.path)
+            if selection.lnum and selection.col then
+              vim.api.nvim_win_set_cursor(0, { selection.lnum, selection.col - 1 })
+            end
+          end
+        end
 
-      -- Keymap: Set cwd to parent directory
+        -- Map Enter in insert and normal mode
+        local map = function(mode, key)
+          vim.keymap.set(mode, key, jump_to_selection, { buffer = prompt_bufnr, noremap = true, silent = true })
+        end
+
+        map("i", "<CR>")
+        map("n", "<CR>")
+      end
+
+      -- Telescope keymaps
+      vim.keymap.set("n", "<leader>cdg", function()
+        set_cwd(get_cwd())
+      end, { noremap = true, silent = true, desc = "Set CWD to Git root" })
+
       vim.keymap.set("n", "<leader>cdp", function()
-        local parent_dir = vim.fn.expand("%:p:h:h")
-        set_cwd(parent_dir)
+        set_cwd(vim.fn.expand("%:p:h:h"))
       end, { noremap = true, silent = true, desc = "Set CWD to parent directory" })
 
-      -- Keymap: Set cwd to current file's directory
       vim.keymap.set("n", "<leader>cdc", function()
-        local file_dir = vim.fn.expand("%:p:h")
-        set_cwd(file_dir)
-      end, { noremap = true, silent = true, desc = "Set CWD to file's directory" })
+        set_cwd(vim.fn.expand("%:p:h"))
+      end, { noremap = true, silent = true, desc = "Set CWD to file directory" })
 
-      -- Keymap: Fuzzy search in file's directory
       vim.keymap.set("n", "<leader>ff", function()
-        builtin.find_files()
-      end, { noremap = true, silent = true, desc = "Find files in file's directory" })
+        builtin.find_files({
+          attach_mappings = function(prompt_bufnr, map)
+            attach_jump_mappings(prompt_bufnr)
+            return true
+          end,
+        })
+      end, { noremap = true, silent = true, desc = "Find files and jump to selection" })
 
-      -- Keymap: Live grep in file's directory
       vim.keymap.set("n", "<leader>fg", function()
-        builtin.live_grep()
-      end, { noremap = true, silent = true, desc = "Live grep in file's directory" })
+        builtin.live_grep({
+          attach_mappings = function(prompt_bufnr, map)
+            attach_jump_mappings(prompt_bufnr)
+            return true
+          end,
+        })
+      end, { noremap = true, silent = true, desc = "Live grep and jump to selection" })
 
-      -- Default keymaps for buffers and help
-      vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
-      vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
+      vim.keymap.set("n", "<leader>fb", function()
+        builtin.buffers({
+          attach_mappings = function(prompt_bufnr, map)
+            attach_jump_mappings(prompt_bufnr)
+            return true
+          end,
+        })
+      end, { noremap = true, silent = true, desc = "List buffers and jump" })
+
+      vim.keymap.set("n", "<leader>fh", builtin.help_tags, { noremap = true, silent = true })
     end,
   },
   {
