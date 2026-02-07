@@ -7,9 +7,7 @@ return {
       ------------------------------------------------------------------
       -- LSP server definitions (Neovim 0.11 native)
       ------------------------------------------------------------------
-
       vim.lsp.config.lua_ls = {}
-      vim.lsp.config.rust_analyzer = {}
       vim.lsp.config.clangd = {}
       vim.lsp.config.eslint = {}
       vim.lsp.config.jinja_lsp = {}
@@ -18,7 +16,6 @@ return {
       -- Enable servers
       vim.lsp.enable({
         "lua_ls",
-        "rust_analyzer",
         "clangd",
         "eslint",
         "jinja_lsp",

@@ -1,8 +1,14 @@
--- If this plugin throws an error, then run this command with the correct username and group to fix it. It iw probably caused bu the root user creating the repository first.
---sudo chown adoucet:users ~/.local/share/nvim/lazy/nvim-treesitter/parser
---
 return {
   "nvim-treesitter/nvim-treesitter",
   lazy = false,
-  build = ':TSUpdate',
+  build = ":TSUpdate",
+  opts = {
+    ensure_installed = { "rust", "ron", "python", "lua", "vim", "vimdoc", "bash", "json", "yaml", "markdown" },
+    highlight = {
+      enable = true,
+      additional_vim_regex_highlighting = false,
+    },
+    indent = { enable = true },
+    fold = { enable = true },
+  },
 }

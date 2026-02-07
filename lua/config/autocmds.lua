@@ -1,9 +1,23 @@
+---
+---
+---
 ---- Do some magic with autocmd
 -- Remove trailing space
 vim.api.nvim_create_autocmd({ "BufWritePre" }, {
   pattern = { "*" },
   command = [[%s/\s\+$//e]],
 })
+
+local group = vim.api.nvim_create_augroup("autoread_cursorhold", { clear = true })
+
+vim.api.nvim_create_autocmd("CursorHold", {
+  group = group,
+  pattern = "*",
+  callback = function()
+    vim.cmd("checktime")
+  end,
+})
+
 
 --vim.api.nvim_create_autocmd("CursorHold", {
 --  callback = function()
