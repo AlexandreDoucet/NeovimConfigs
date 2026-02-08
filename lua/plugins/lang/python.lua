@@ -22,18 +22,19 @@ return {
   ---------------------------------------------------------------------------
   -- Mason: ensure Python tooling
   ---------------------------------------------------------------------------
-  {
-    "mason-org/mason.nvim",
-    optional = true,
-    opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      vim.list_extend(opts.ensure_installed, {
-        "pyright",
-        "ruff",
-        "debugpy",
-      })
-    end,
-  },
+  --{
+  --  "williamboman/mason-tool-installer.nvim",
+  --  dependencies = { "mason-org/mason.nvim" },
+  --  opts = {
+  --    ensure_installed = {
+  --      "pyright",
+  --      "ruff",
+  --      "debugpy",
+  --    },
+  --    auto_update = false,
+  --    run_on_start = true,
+  --  },
+  --},
 
   ---------------------------------------------------------------------------
   -- Python LSP (pyright + ruff)
@@ -69,34 +70,6 @@ return {
   },
 
   ---------------------------------------------------------------------------
-  -- Python DAP (debugpy)
-  ---------------------------------------------------------------------------
-  {
-    "mfussenegger/nvim-dap",
-    optional = true,
-    config = function()
-      local dap = require("dap")
-
-      dap.adapters.python = {
-        type = "executable",
-        command = vim.fn.exepath("debugpy"),
-        args = { "-m", "debugpy.adapter" },
-      }
-
-      dap.configurations.python = {
-        {
-          type = "python",
-          request = "launch",
-          name = "Debug current file",
-          program = "${file}",
-          cwd = "${workspaceFolder}",
-          console = "integratedTerminal",
-        },
-      }
-    end,
-  },
-
-  ---------------------------------------------------------------------------
   -- Python test integration (pytest)
   ---------------------------------------------------------------------------
   {
@@ -128,4 +101,13 @@ return {
       "mfussenegger/nvim-dap-python",
     },
   },
+
+  {
+    "mfussenegger/nvim-dap-python",
+    ft = { "python" },
+    dependencies = { "mfussenegger/nvim-dap" },
+    config = function()
+      require("dap-python").setup("python")
+    end,
+  }
 }

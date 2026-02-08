@@ -1,3 +1,5 @@
+vim.o.wrap = false
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
