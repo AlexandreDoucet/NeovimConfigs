@@ -41,4 +41,4 @@ luac.out
 
 
 lazy-lock.json
-.luarc.json
+#.luarc.json

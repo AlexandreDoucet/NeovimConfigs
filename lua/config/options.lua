@@ -122,3 +122,9 @@ vim.api.nvim_set_hl(0, '@lsp.typemod.enumMember.static', { link = '@constant' })
 vim.api.nvim_set_hl(0, '@lsp.typemod.method.static', { link = '@constant' })
 vim.api.nvim_set_hl(0, '@lsp.typemod.property.static', { link = '@constant' })
 vim.api.nvim_set_hl(0, '@lsp.typemod.variable.readonly.python', { link = '@constant' })
+
+vim.filetype.add({
+  extension = {
+    profile = "json",
+  },
+})
